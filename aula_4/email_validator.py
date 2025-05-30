@@ -7,7 +7,7 @@ def validate(email):
     if len(email) > 320: # Mutante 1 - If_statement to if_false
         return False     # Mutante 2 - Return None
 
-    if '@' not in email or email.count('@') != 1: # Mutante 3 - not equal to least ("<")
+    if '@' not in email or email.count('@') != 1: # Mutante 3 - not equal to Gt (">")
         return False
 
     local_part, domain = email.split('@')
