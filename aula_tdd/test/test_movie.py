@@ -3,9 +3,10 @@ from datetime import timedelta
 
 def test_create_movie():
     movie1 = Movie("1", "Lilo e Stitch", 90, "Animacao")
-    assert movie1.name
-    assert movie1.time
-    assert movie1.genre
+    assert movie1.id == "1"
+    assert movie1.name == "Lilo e Stitch"
+    assert movie1.time == 90
+    assert movie1.genre == "Animacao"
     
 def test_formatted_time():
     movie1 = Movie("1", "Lilo e Stitch", 90, "Animacao")

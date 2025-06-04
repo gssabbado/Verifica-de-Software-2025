@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from src.domain.errors import DuplicateRoomName, DuplicateIDMovie
+from src.domain.errors import DuplicateRoomName, DuplicateIDMovie, DuplicateIDSession, DuplicateIDUser
 from datetime import timedelta
 
 class SeatStatus(Enum):
@@ -123,6 +123,60 @@ class Movie:
             return DuplicateIDMovie
         return True
 
+
+@dataclass
+class Session:
+    movie: Movie
+    seat: Seat
+    room: Room
+    start_time: str
+    id: str
     
+    def __init__(self, movie, seat, room, start_time, id):
+        self.movie = movie
+        self.seat = seat
+        self.room = room
+        self.start_time = start_time
+        self.id = id
+        
+    def unique_id(self, other_session):
+        if self.id == other_session.id:
+            return DuplicateIDSession
+        return True
+        
+    def get_end_time(self):
+        hour = self.movie.time // 60
+        minute = self.movie.time % 60
+        duration = self.start_time.split(":")
+        start_time_hour = int(duration[0]) 
+        start_time_minute = int(duration[1])
+        end_time = timedelta(hours=start_time_hour + hour, minutes=start_time_minute + minute)
+        return end_time
+    
+    def get_start_time(self):
+        start_time = self.start_time.split(":")
+        start_time_hour = int(start_time[0]) 
+        start_time_minute = int(start_time[1])
+        time = timedelta(hours=start_time_hour, minutes=start_time_minute)
+        return time
 
-
+@dataclass
+class User:
+    id: str
+    name: str
+    email: str
+    age: int
+    booking: list[Session]
+    
+    def __init__(self, id, name, email, age, booking=None):
+        self.id = id
+        self.name = name
+        self.email = email
+        self.age = age
+        self.booking = []
+        
+    def unique_id(self, other_user):
+        if self.id == other_user.id:
+            return DuplicateIDUser
+        return True
+    

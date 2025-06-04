@@ -3,3 +3,9 @@ class DuplicateRoomName(Exception):
 
 class DuplicateIDMovie(Exception):
     pass
+
+class DuplicateIDSession(Exception):
+    pass
+
+class DuplicateIDUser(Exception):
+    pass
