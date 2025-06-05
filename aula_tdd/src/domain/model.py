@@ -95,22 +95,28 @@ class Theater:
     
 @dataclass
 class Movie:
-    id: str
     name: str
     time: int
     genre: str
     
-    def __init__(self, id, name, time, genre):
-        self.id = id
+    def __init__(self, name, time, genre):
         self.name = name
         self.time = time
         self.genre = genre
         
     def formatted_time(self):
-        minutes = str(self.time % 60)
-        hour = str(self.time // 60)
-        length = hour + "h" + minutes + "min"
-        return length
+        minutes = self.time % 60
+        hour = self.time // 60
+        if minutes > 0 and hour > 0:
+            length = f"{hour}h{minutes}min"
+            return length
+        elif hour == 0:
+            length = f"{minutes}min"
+            return length
+        else:
+            length = f"{hour}h"
+            return length 
+        
     
     def get_duration(self):
         hour = self.time//60
@@ -127,22 +133,13 @@ class Movie:
 @dataclass
 class Session:
     movie: Movie
-    seat: Seat
     room: Room
     start_time: str
-    id: str
     
-    def __init__(self, movie, seat, room, start_time, id):
+    def __init__(self, movie, room, start_time):
         self.movie = movie
-        self.seat = seat
         self.room = room
         self.start_time = start_time
-        self.id = id
-        
-    def unique_id(self, other_session):
-        if self.id == other_session.id:
-            return DuplicateIDSession
-        return True
         
     def get_end_time(self):
         hour = self.movie.time // 60
@@ -159,24 +156,24 @@ class Session:
         start_time_minute = int(start_time[1])
         time = timedelta(hours=start_time_hour, minutes=start_time_minute)
         return time
+    
+    def get_seat_session(self, seat):
+        row = ord(seat.row) - 65
+        column = seat.number
+        
+        return 
+
+
 
 @dataclass
 class User:
-    id: str
     name: str
     email: str
     age: int
     booking: list[Session]
     
-    def __init__(self, id, name, email, age, booking=None):
-        self.id = id
+    def __init__(self, name, email, age, booking=None):
         self.name = name
         self.email = email
         self.age = age
-        self.booking = []
-        
-    def unique_id(self, other_user):
-        if self.id == other_user.id:
-            return DuplicateIDUser
-        return True
-    
+        self.booking = []    
