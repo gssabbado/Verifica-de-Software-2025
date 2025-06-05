@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from src.domain.errors import DuplicateRoomName, DuplicateIDMovie, DuplicateIDSession, DuplicateIDUser
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 class SeatStatus(Enum):
     AVAILABLE = "available"
@@ -135,12 +135,11 @@ class Session:
     movie: Movie
     room: Room
     start_time: str
-    
-    def __init__(self, movie, room, start_time):
-        self.movie = movie
-        self.room = room
-        self.start_time = start_time
+    bookings: list['Booking'] = field(default_factory=list)
         
+    def add_booking(self, booking):
+        self.bookings.append(booking)
+
     def get_end_time(self):
         hour = self.movie.time // 60
         minute = self.movie.time % 60
@@ -158,11 +157,12 @@ class Session:
         return time
     
     def get_seat_session(self, seat):
-        row = ord(seat.row) - 65
-        column = seat.number
-        
-        return 
+        row_index = ord(seat.row) - 65
+        col_index = seat.number - 1
 
+        if 0 <= row_index < len(self.room.rows) and 0 <= col_index < len(self.room.rows[row_index]):
+            return self.room.rows[row_index][col_index]
+        return None
 
 
 @dataclass
@@ -170,10 +170,58 @@ class User:
     name: str
     email: str
     age: int
-    booking: list[Session]
+    booking: list['Booking'] = field(default_factory=list)
+
+    def add_booking(self, booking):
+        self.booking.append(booking)
     
-    def __init__(self, name, email, age, booking=None):
-        self.name = name
-        self.email = email
-        self.age = age
-        self.booking = []    
+    def remove_booking(self, booking):
+        if booking in self.booking:
+            self.booking.remove(booking)
+            return True
+        return False
+    
+  
+
+@dataclass
+class Booking:
+    user: User
+    session: Session
+    price: int
+    timestamp: datetime
+    seats: list[Seat]
+
+    def __init__(self, user, session, price, timestamp=None, seats=None):
+        self.user = user
+        self.session = session
+        self.price = price
+        self.timestamp = timestamp or datetime.now()
+        self.seats = seats or []
+    
+        
+        if hasattr(session, 'bookings'):
+            session.bookings.append(self)
+
+
+    def confirm(self):
+        if not all(seat.status == SeatStatus.RESERVED for seat in self.seats):
+            return False
+    
+        for seat in self.seats:
+            seat.confirm()
+        return True
+
+    def cancel(self):
+        for seat in self.seats:
+            seat.release()
+    
+        if self in self.user.booking:
+            self.user.booking.remove(self)
+    
+        if hasattr(self.session, 'bookings') and self in self.session.bookings:
+            self.session.bookings.remove(self)
+    
+        return True
+
+    def calculate_total_price(self, price_per_seat=15):
+        return len(self.seats) * price_per_seat
